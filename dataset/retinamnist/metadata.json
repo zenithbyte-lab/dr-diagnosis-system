@@ -1,0 +1,47 @@
+{
+  "dataset": "RetinaMNIST",
+  "source": "MedMNIST v2 (DeepDRiD)",
+  "image_size": "28x28",
+  "channels": 3,
+  "num_classes": 5,
+  "classes": [
+    "No_DR",
+    "Mild",
+    "Moderate",
+    "Severe",
+    "Proliferative"
+  ],
+  "splits": {
+    "train": {
+      "count": 1080,
+      "distribution": {
+        "No_DR": 486,
+        "Mild": 128,
+        "Moderate": 206,
+        "Severe": 194,
+        "Proliferative": 66
+      }
+    },
+    "val": {
+      "count": 120,
+      "distribution": {
+        "No_DR": 54,
+        "Mild": 12,
+        "Moderate": 28,
+        "Severe": 20,
+        "Proliferative": 6
+      }
+    },
+    "test": {
+      "count": 400,
+      "distribution": {
+        "No_DR": 174,
+        "Mild": 46,
+        "Moderate": 92,
+        "Severe": 68,
+        "Proliferative": 20
+      }
+    }
+  },
+  "total": 1600
+}
