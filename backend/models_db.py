@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Enum, Text, DECIMAL, ForeignKey, SmallInteger
+from sqlalchemy import Column, Integer, String, DateTime, Text, Float, ForeignKey, SmallInteger
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -11,7 +11,7 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     real_name = Column(String(100), default="")
-    role = Column(Enum("admin", "user"), default="user", nullable=False)
+    role = Column(String(10), default="user", nullable=False)
     created_at = Column(DateTime, default=datetime.now)
     last_login = Column(DateTime, default=None)
     is_active = Column(SmallInteger, default=1)
@@ -27,25 +27,25 @@ class Diagnosis(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     patient_name = Column(String(100), default="")
     patient_age = Column(Integer, default=None)
-    patient_gender = Column(Enum("male", "female", "other"), default=None)
-    eye_side = Column(Enum("left", "right", "unknown"), default="unknown")
+    patient_gender = Column(String(10), default=None)
+    eye_side = Column(String(10), default="unknown")
 
     original_image = Column(String(500), nullable=False)
     heatmap_image = Column(String(500), nullable=False)
 
     pred_class = Column(SmallInteger, nullable=False)
     pred_label = Column(String(30), nullable=False)
-    confidence = Column(DECIMAL(5, 2), nullable=False)
-    prob_no_dr = Column(DECIMAL(5, 2), nullable=False)
-    prob_mild = Column(DECIMAL(5, 2), nullable=False)
-    prob_moderate = Column(DECIMAL(5, 2), nullable=False)
-    prob_severe = Column(DECIMAL(5, 2), nullable=False)
-    prob_proliferative = Column(DECIMAL(5, 2), nullable=False)
+    confidence = Column(Float, nullable=False)
+    prob_no_dr = Column(Float, nullable=False)
+    prob_mild = Column(Float, nullable=False)
+    prob_moderate = Column(Float, nullable=False)
+    prob_severe = Column(Float, nullable=False)
+    prob_proliferative = Column(Float, nullable=False)
 
     risk_level = Column(String(20), nullable=False)
     recommendation = Column(Text)
 
-    review_status = Column(Enum("pending", "confirmed", "rejected"), default="pending")
+    review_status = Column(String(20), default="pending")
     reviewer_id = Column(Integer, ForeignKey("users.id"), default=None)
     review_comment = Column(Text, default=None)
     reviewed_at = Column(DateTime, default=None)

@@ -23,11 +23,12 @@ def get_statistics(user: User = Depends(require_admin), db: Session = Depends(ge
 
     # Daily counts for last 30 days
     thirty_days_ago = datetime.now() - timedelta(days=30)
+    date_expr = func.strftime('%Y-%m-%d', Diagnosis.created_at)
     daily_rows = (
-        db.query(func.date(Diagnosis.created_at), func.count())
+        db.query(date_expr, func.count())
         .filter(Diagnosis.created_at >= thirty_days_ago)
-        .group_by(func.date(Diagnosis.created_at))
-        .order_by(func.date(Diagnosis.created_at))
+        .group_by(date_expr)
+        .order_by(date_expr)
         .all()
     )
     daily_counts = [{"date": str(row[0]), "count": row[1]} for row in daily_rows]

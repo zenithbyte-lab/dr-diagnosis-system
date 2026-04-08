@@ -1,6 +1,8 @@
 import os
 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:123456@localhost:3306/dr_diagnosis")
+# Default to SQLite for quick start; set DATABASE_URL env var for MySQL in production
+# e.g. DATABASE_URL=mysql+pymysql://root:123456@localhost:3306/dr_diagnosis
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///" + os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")), "dr_diagnosis.db"))
 JWT_SECRET = os.getenv("JWT_SECRET", "dr-diagnosis-secret-key-2024")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 24
