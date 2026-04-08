@@ -1,0 +1,16 @@
+torch
+torchvision
+fastapi
+uvicorn[standard]
+python-multipart
+Pillow
+numpy
+opencv-python
+matplotlib
+seaborn
+scikit-learn
+sqlalchemy
+pymysql
+python-jose[cryptography]
+passlib[bcrypt]
+python-docx
