@@ -4,18 +4,18 @@ FastAPI backend for Diabetic Retinopathy Diagnosis System.
 import os
 import sys
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 import torch
 
-# Add project root to path so models/ and utils/ are importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from models.resnet152 import load_model
 from utils.gradcam import GradCAM, apply_heatmap
 from utils.transforms import inference_transform
-from .config import MODEL_PATH, UPLOAD_DIR, HEATMAP_DIR
+from .config import MODEL_PATH, UPLOAD_DIR, HEATMAP_DIR, PROJECT_ROOT
 from .constants import CLASSES
 from .database import engine, Base
 from .routers import auth_router, diagnosis_router, report_router, admin_router
@@ -26,7 +26,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = load_model(MODEL_PATH, device)
 grad_cam = GradCAM(model, model.layer4[-1])
 
-# Re-export for use by routers via `from backend.app import ...`
 inference_transform = inference_transform
 apply_heatmap = apply_heatmap
 
@@ -41,6 +40,19 @@ app.include_router(admin_router.router)
 app.mount("/files/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 app.mount("/files/heatmaps", StaticFiles(directory=HEATMAP_DIR), name="heatmaps")
 
+# Serve pre-built frontend from static/
+STATIC_DIR = os.path.join(PROJECT_ROOT, "static")
+if os.path.isdir(STATIC_DIR):
+    app.mount("/assets", StaticFiles(directory=os.path.join(STATIC_DIR, "assets")), name="frontend-assets")
+
+    @app.get("/favicon.svg")
+    def favicon():
+        return FileResponse(os.path.join(STATIC_DIR, "favicon.svg"))
+
+    @app.get("/icons.svg")
+    def icons():
+        return FileResponse(os.path.join(STATIC_DIR, "icons.svg"))
+
 
 @app.get("/api/health")
 def health():
@@ -54,9 +66,19 @@ def seed_admin():
     from .auth import hash_password
     db = SessionLocal()
     if not db.query(User).filter(User.username == "admin").first():
-        db.add(User(username="admin", password_hash=hash_password("admin123"), real_name="Administrator", role="admin"))
+        db.add(User(username="admin", password_hash=hash_password("admin123"), real_name="管理员", role="admin"))
         db.commit()
     db.close()
+
+
+# Catch-all: serve index.html for SPA routing (must be last)
+if os.path.isdir(STATIC_DIR):
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        # Don't intercept API/file routes
+        if full_path.startswith(("api/", "files/")):
+            return
+        return FileResponse(os.path.join(STATIC_DIR, "index.html"))
 
 
 if __name__ == "__main__":
