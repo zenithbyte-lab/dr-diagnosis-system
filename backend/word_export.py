@@ -6,6 +6,7 @@ from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from .config import REPORT_DIR
+from .constants import RISK_CN, GENDER_CN, EYE_CN, SEVERITY_CN, REVIEW_CN
 
 RISK_COLORS = {
     "Low": RGBColor(0x10, 0xB9, 0x81),
@@ -14,12 +15,6 @@ RISK_COLORS = {
     "High": RGBColor(0xEF, 0x44, 0x44),
     "Critical": RGBColor(0xDC, 0x26, 0x26),
 }
-
-RISK_CN = {"Low": "低风险", "Low-Medium": "低中风险", "Medium": "中风险", "High": "高风险", "Critical": "极高风险"}
-GENDER_CN = {"male": "男", "female": "女"}
-EYE_CN = {"left": "左眼", "right": "右眼", "unknown": "未指定"}
-SEVERITY_CN = ["无明显病变（0级）", "轻度（1级）", "中度（2级）", "重度（3级）", "增殖期（4级）"]
-REVIEW_CN = {"pending": "待审核", "confirmed": "已确认", "rejected": "已驳回"}
 
 
 def generate_report(diagnosis) -> str:

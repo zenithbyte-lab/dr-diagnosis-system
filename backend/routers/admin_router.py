@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func, cast, String
+from sqlalchemy import func
 from ..database import get_db, engine
 from ..models_db import User, Diagnosis
 from ..auth import require_admin
@@ -71,9 +71,9 @@ def search_diagnoses(
     if status:
         query = query.filter(Diagnosis.review_status == status)
     if date_from:
-        query = query.filter(Diagnosis.created_at >= date_from)
+        query = query.filter(Diagnosis.created_at >= datetime.strptime(date_from, "%Y-%m-%d"))
     if date_to:
-        query = query.filter(Diagnosis.created_at <= date_to + " 23:59:59")
+        query = query.filter(Diagnosis.created_at < datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1))
     total = query.count()
     items = query.order_by(Diagnosis.created_at.desc()).offset((page - 1) * size).limit(size).all()
     return {
