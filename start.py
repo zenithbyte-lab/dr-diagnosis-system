@@ -47,10 +47,10 @@ def main():
         sys.exit(1)
     print("      OK")
 
-    # 2. Install dependencies
-    print(f"\n[2/5] 安装 Python 依赖...")
+    # 2. Install dependencies (use China mirror for faster download)
+    print(f"\n[2/5] 安装 Python 依赖（使用清华镜像加速）...")
     run(
-        f"{sys.executable} -m pip install -r {REQUIREMENTS} -q",
+        f"{sys.executable} -m pip install -r {REQUIREMENTS} -q -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn",
         "安装依赖包",
     )
 
