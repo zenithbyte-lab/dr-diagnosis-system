@@ -6,12 +6,8 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getStatistics, searchDiagnoses, reviewDiagnosis, listUsers } from '../api/admin';
-import { SEVERITY_COLORS, SEVERITY_TAG_COLORS, SEVERITY_LABELS, REVIEW_TAG_COLORS } from '../constants/severity';
+import { SEVERITY_COLORS, SEVERITY_TAG_COLORS, SEVERITY_LABELS_CN, REVIEW_TAG_COLORS, REVIEW_CN, RISK_CN } from '../constants/severity';
 import type { ColumnsType } from 'antd/es/table';
-
-const CN_LABELS = ['无明显病变', '轻度', '中度', '重度', '增殖期'];
-const RISK_CN: Record<string, string> = { Low: '低', 'Low-Medium': '低中', Medium: '中', High: '高', Critical: '极高' };
-const REVIEW_CN: Record<string, string> = { pending: '待审核', confirmed: '已确认', rejected: '已驳回' };
 
 interface Stats {
   total_diagnoses: number;
@@ -83,7 +79,7 @@ export default function AdminDashboard() {
     { title: '诊断时间', dataIndex: 'created_at', width: 170, render: (v: string) => new Date(v).toLocaleString() },
     { title: '用户', dataIndex: 'user_id', width: 90, render: (v: number) => userMap[v] || `用户${v}` },
     { title: '患者姓名', dataIndex: 'patient_name', render: (v: string) => v || '-' },
-    { title: '病变等级', dataIndex: 'pred_class', width: 120, render: (v: number) => <Tag color={SEVERITY_TAG_COLORS[v]}>{CN_LABELS[v]}</Tag> },
+    { title: '病变等级', dataIndex: 'pred_class', width: 120, render: (v: number) => <Tag color={SEVERITY_TAG_COLORS[v]}>{SEVERITY_LABELS_CN[v]}</Tag> },
     { title: '置信度', dataIndex: 'confidence', width: 90, render: (v: number) => `${v}%` },
     { title: '风险', dataIndex: 'risk_level', width: 70, render: (v: string) => RISK_CN[v] || v },
     {
@@ -137,7 +133,7 @@ export default function AdminDashboard() {
       {stats && (
         <Card title="病变等级分布" style={{ marginBottom: 24 }}>
           <Row gutter={16} justify="space-around">
-            {SEVERITY_LABELS.map((_, i) => {
+            {SEVERITY_LABELS_CN.map((_: string, i: number) => {
               const count = stats.severity_distribution[i];
               const totalCount = stats.total_diagnoses || 1;
               const pct = Math.round((count / totalCount) * 100);
@@ -150,7 +146,7 @@ export default function AdminDashboard() {
                   }}>
                     {count}
                   </div>
-                  <div style={{ marginTop: 8, fontSize: 13, fontWeight: 500 }}>{CN_LABELS[i]}</div>
+                  <div style={{ marginTop: 8, fontSize: 13, fontWeight: 500 }}>{SEVERITY_LABELS_CN[i]}</div>
                   <div style={{ fontSize: 12, color: '#999' }}>{pct}%</div>
                 </Col>
               );
@@ -165,7 +161,7 @@ export default function AdminDashboard() {
         extra={
           <Space>
             <Select placeholder="病变等级" allowClear style={{ width: 130 }} onChange={(v) => { setSeverity(v); setPage(1); }}>
-              {CN_LABELS.map((l, i) => <Select.Option key={i} value={i}>{l}</Select.Option>)}
+              {SEVERITY_LABELS_CN.map((l, i) => <Select.Option key={i} value={i}>{l}</Select.Option>)}
             </Select>
             <Input.Search placeholder="患者姓名" allowClear onSearch={(v) => { setKeyword(v); setPage(1); }} style={{ width: 180 }} />
           </Space>

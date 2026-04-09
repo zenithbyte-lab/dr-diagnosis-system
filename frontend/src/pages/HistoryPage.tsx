@@ -3,13 +3,9 @@ import { Card, Table, Tag, Button, Space, Popconfirm, Empty, message } from 'ant
 import { EyeOutlined, DeleteOutlined, DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { listDiagnoses, deleteDiagnosis } from '../api/diagnosis';
-import { SEVERITY_TAG_COLORS, REVIEW_TAG_COLORS } from '../constants/severity';
+import { SEVERITY_TAG_COLORS, SEVERITY_LABELS_CN, REVIEW_TAG_COLORS, REVIEW_CN, EYE_CN } from '../constants/severity';
 import { exportDiagnosisReport } from '../utils/download';
 import type { ColumnsType } from 'antd/es/table';
-
-const EYE_CN: Record<string, string> = { left: '左眼', right: '右眼', unknown: '未指定' };
-const REVIEW_CN: Record<string, string> = { pending: '待审核', confirmed: '已确认', rejected: '已驳回' };
-const CN_LABELS = ['无明显病变', '轻度', '中度', '重度', '增殖期'];
 
 interface DiagRecord {
   uid: string;
@@ -67,7 +63,7 @@ export default function HistoryPage() {
     { title: '眼别', dataIndex: 'eye_side', width: 80, render: (v: string) => EYE_CN[v] || v },
     {
       title: '病变等级', dataIndex: 'pred_class', width: 130,
-      render: (v: number) => <Tag color={SEVERITY_TAG_COLORS[v]}>{CN_LABELS[v]}</Tag>,
+      render: (v: number) => <Tag color={SEVERITY_TAG_COLORS[v]}>{SEVERITY_LABELS_CN[v]}</Tag>,
     },
     {
       title: '置信度', dataIndex: 'confidence', width: 90,

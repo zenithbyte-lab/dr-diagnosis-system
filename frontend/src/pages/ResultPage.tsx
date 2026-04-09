@@ -3,17 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Row, Col, Progress, Alert, Button, Tabs, Descriptions, Spin, message, Space, Typography } from 'antd';
 import { DownloadOutlined, PlusOutlined, HistoryOutlined, FundViewOutlined } from '@ant-design/icons';
 import { getDiagnosis } from '../api/diagnosis';
-import { SEVERITY_COLORS, SEVERITY_LABELS, ALERT_TYPES } from '../constants/severity';
+import { SEVERITY_COLORS, SEVERITY_LABELS, SEVERITY_LABELS_CN, ALERT_TYPES, RISK_CN, EYE_CN, GENDER_CN } from '../constants/severity';
 import { exportDiagnosisReport } from '../utils/download';
 
 const { Text } = Typography;
-
-const RISK_CN: Record<string, string> = {
-  Low: '低风险', 'Low-Medium': '低中风险', Medium: '中风险', High: '高风险', Critical: '极高风险',
-};
-
-const EYE_CN: Record<string, string> = { left: '左眼', right: '右眼', unknown: '未指定' };
-const GENDER_CN: Record<string, string> = { male: '男', female: '女' };
 
 interface DiagnosisData {
   uid: string;
@@ -65,7 +58,6 @@ export default function ResultPage() {
   if (!data) return <Alert type="error" message="诊断记录未找到" />;
 
   const probs = [data.prob_no_dr, data.prob_mild, data.prob_moderate, data.prob_severe, data.prob_proliferative];
-  const CN_LABELS = ['无明显病变', '轻度', '中度', '重度', '增殖期'];
 
   return (
     <div>
@@ -106,7 +98,7 @@ export default function ResultPage() {
           <Card title="诊断结果">
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
               <span className={`severity-badge severity-${data.pred_class}`} style={{ fontSize: 18, padding: '8px 24px' }}>
-                {CN_LABELS[data.pred_class]}（{data.pred_label}）
+                {SEVERITY_LABELS_CN[data.pred_class]}（{data.pred_label}）
               </span>
             </div>
 
@@ -125,7 +117,7 @@ export default function ResultPage() {
               {SEVERITY_LABELS.map((label, i) => (
                 <div key={i} style={{ marginBottom: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                    <span>{CN_LABELS[i]}（{label}）</span>
+                    <span>{SEVERITY_LABELS_CN[i]}（{label}）</span>
                     <span style={{ fontWeight: 600 }}>{probs[i]}%</span>
                   </div>
                   <div style={{ background: '#f0f0f0', borderRadius: 4, height: 12, overflow: 'hidden' }}>
