@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Card, Form, Input, Select, InputNumber, Button, Spin, Steps, message, Typography, Row, Col } from 'antd';
+import { Card, Form, Input, Select, InputNumber, Button, Spin, message, Typography, Row, Col } from 'antd';
 import { CloudUploadOutlined, ScanOutlined } from '@ant-design/icons';
 import { useDropzone } from 'react-dropzone';
 import { useNavigate } from 'react-router-dom';
@@ -7,14 +7,11 @@ import { createDiagnosis } from '../api/diagnosis';
 
 const { Title, Text } = Typography;
 
-const LOADING_STEPS = ['上传图像', '模型推理', '生成热力图', '保存结果'];
-
 export default function DiagnosisPage() {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState(0);
 
   const onDrop = useCallback((accepted: File[]) => {
     if (accepted.length > 0) {
@@ -34,13 +31,6 @@ export default function DiagnosisPage() {
   const onSubmit = async (values: Record<string, string>) => {
     if (!file) { message.warning('请先上传眼底图像'); return; }
     setLoading(true);
-    setStep(0);
-
-    // Simulate step progress while waiting for API
-    const timer = setInterval(() => {
-      setStep((prev) => (prev < 3 ? prev + 1 : prev));
-    }, 3000);
-
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -49,34 +39,17 @@ export default function DiagnosisPage() {
       if (values.patient_gender) fd.append('patient_gender', values.patient_gender);
       if (values.eye_side) fd.append('eye_side', values.eye_side);
       const { data } = await createDiagnosis(fd);
-      clearInterval(timer);
       message.success('诊断完成');
-      navigate(`/result/${data.uid}`);
+      navigate(`/result/${data.uid}`, { state: { diagnosis: data } });
     } catch {
-      clearInterval(timer);
       message.error('诊断失败，请重试');
     } finally {
       setLoading(false);
-      setStep(0);
     }
   };
 
   return (
-    <Spin
-      spinning={loading}
-      tip={
-        <div style={{ marginTop: 16 }}>
-          <Steps
-            current={step}
-            size="small"
-            style={{ maxWidth: 400, margin: '16px auto' }}
-            items={LOADING_STEPS.map((t) => ({ title: t }))}
-          />
-          <div style={{ marginTop: 8, color: '#666' }}>AI 模型分析中，请稍候...</div>
-        </div>
-      }
-      size="large"
-    >
+    <Spin spinning={loading} tip="AI 模型分析中，请稍候..." size="large">
       <Row gutter={24}>
         <Col xs={24} lg={14}>
           <Card title={<><CloudUploadOutlined /> 上传眼底图像</>}>
@@ -94,6 +67,11 @@ export default function DiagnosisPage() {
                     将眼底图像拖拽至此处，或点击浏览选择
                   </Title>
                   <Text type="secondary">支持 PNG / JPG / JPEG 格式，最大 10MB</Text>
+                  <div style={{ marginTop: 12, padding: '8px 16px', background: '#f0fdfa', borderRadius: 6, display: 'inline-block' }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      建议上传清晰的视网膜眼底彩色照片，分辨率不低于 224x224
+                    </Text>
+                  </div>
                 </>
               )}
             </div>

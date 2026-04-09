@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, Table, Tag, Button, Space, Popconfirm, Empty, message } from 'antd';
 import { EyeOutlined, DeleteOutlined, DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -26,7 +26,7 @@ export default function HistoryPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const load = async (p = page) => {
+  const load = useCallback(async (p = page) => {
     setLoading(true);
     try {
       const res = await listDiagnoses(p, 10);
@@ -35,9 +35,9 @@ export default function HistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page]);
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [load]);
 
   const handleDelete = async (uid: string) => {
     await deleteDiagnosis(uid);

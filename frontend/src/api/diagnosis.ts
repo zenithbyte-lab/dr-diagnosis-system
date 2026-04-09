@@ -12,8 +12,5 @@ export const getDiagnosis = (uid: string) =>
 export const deleteDiagnosis = (uid: string) =>
   client.delete(`/api/diagnoses/${uid}`);
 
-export const generateReport = (uid: string) =>
-  client.post(`/api/reports/${uid}`);
-
 export const downloadReport = (uid: string) =>
   client.get(`/api/reports/${uid}/download`, { responseType: 'blob' });

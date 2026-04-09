@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Card, Row, Col, Statistic, Table, Tag, Button, Modal, Input, Select, Space, message } from 'antd';
+import { useEffect, useState, useCallback } from 'react';
+import { Card, Row, Col, Statistic, Table, Tag, Button, Modal, Input, Select, Space, DatePicker, message } from 'antd';
 import {
   MedicineBoxOutlined, AlertOutlined, AuditOutlined, BarChartOutlined,
   CheckCircleOutlined, CloseCircleOutlined, EyeOutlined,
@@ -43,6 +43,8 @@ export default function AdminDashboard() {
   const [page, setPage] = useState(1);
   const [severity, setSeverity] = useState<number | undefined>();
   const [keyword, setKeyword] = useState('');
+  const [reviewStatus, setReviewStatus] = useState<string | undefined>();
+  const [dateRange, setDateRange] = useState<[string, string] | null>(null);
   const [reviewModal, setReviewModal] = useState<{ uid: string; open: boolean }>({ uid: '', open: false });
   const [reviewComment, setReviewComment] = useState('');
   const [userMap, setUserMap] = useState<Record<number, string>>({});
@@ -56,16 +58,19 @@ export default function AdminDashboard() {
     });
   }, []);
 
-  const loadRecords = async (p = page) => {
+  const loadRecords = useCallback(async (p = page) => {
     const params: { [key: string]: unknown } = { page: p, size: 10 };
     if (severity !== undefined) params.severity = severity;
     if (keyword) params.keyword = keyword;
+    if (reviewStatus) params.status = reviewStatus;
+    if (dateRange) { params.date_from = dateRange[0]; params.date_to = dateRange[1]; }
     const res = await searchDiagnoses(params);
     setRecords(res.data.items);
     setTotal(res.data.total);
-  };
+  }, [page, severity, keyword, reviewStatus, dateRange]);
 
-  useEffect(() => { loadRecords(); }, [page, severity, keyword]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching pattern
+  useEffect(() => { loadRecords(); }, [loadRecords]);
 
   const handleReview = async (status: string) => {
     await reviewDiagnosis(reviewModal.uid, status, reviewComment);
@@ -159,11 +164,23 @@ export default function AdminDashboard() {
       <Card
         title="全部诊断记录"
         extra={
-          <Space>
-            <Select placeholder="病变等级" allowClear style={{ width: 130 }} onChange={(v) => { setSeverity(v); setPage(1); }}>
-              {SEVERITY_LABELS_CN.map((l, i) => <Select.Option key={i} value={i}>{l}</Select.Option>)}
+          <Space wrap>
+            <Select placeholder="病变等级" allowClear style={{ width: 120 }} onChange={(v) => { setSeverity(v); setPage(1); }}>
+              {SEVERITY_LABELS_CN.map((l: string, i: number) => <Select.Option key={i} value={i}>{l}</Select.Option>)}
             </Select>
-            <Input.Search placeholder="患者姓名" allowClear onSearch={(v) => { setKeyword(v); setPage(1); }} style={{ width: 180 }} />
+            <Select placeholder="审核状态" allowClear style={{ width: 110 }} onChange={(v) => { setReviewStatus(v); setPage(1); }}>
+              <Select.Option value="pending">待审核</Select.Option>
+              <Select.Option value="confirmed">已确认</Select.Option>
+              <Select.Option value="rejected">已驳回</Select.Option>
+            </Select>
+            <DatePicker.RangePicker
+              style={{ width: 240 }}
+              onChange={(_, dateStrings) => {
+                setDateRange(dateStrings[0] ? [dateStrings[0], dateStrings[1]] : null);
+                setPage(1);
+              }}
+            />
+            <Input.Search placeholder="患者姓名" allowClear onSearch={(v) => { setKeyword(v); setPage(1); }} style={{ width: 160 }} />
           </Space>
         }
       >

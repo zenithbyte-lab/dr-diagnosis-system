@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Progress, Alert, Button, Tabs, Descriptions, Spin, message, Space, Typography } from 'antd';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Card, Row, Col, Progress, Alert, Button, Tabs, Descriptions, Spin, message, Space, Typography, Tag } from 'antd';
 import { DownloadOutlined, PlusOutlined, HistoryOutlined, FundViewOutlined } from '@ant-design/icons';
 import { getDiagnosis } from '../api/diagnosis';
-import { SEVERITY_COLORS, SEVERITY_LABELS, SEVERITY_LABELS_CN, ALERT_TYPES, RISK_CN, EYE_CN, GENDER_CN } from '../constants/severity';
+import { SEVERITY_COLORS, SEVERITY_LABELS, SEVERITY_LABELS_CN, ALERT_TYPES, RISK_CN, EYE_CN, GENDER_CN, REVIEW_CN, REVIEW_TAG_COLORS } from '../constants/severity';
 import { exportDiagnosisReport } from '../utils/download';
 
 const { Text } = Typography;
@@ -27,19 +27,32 @@ interface DiagnosisData {
   created_at: string;
   image: string;
   heatmap: string;
+  review_status?: string;
+  review_comment?: string;
 }
 
 export default function ResultPage() {
   const { uid } = useParams<{ uid: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [data, setData] = useState<DiagnosisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
-    getDiagnosis(uid).then((res) => setData(res.data)).catch(() => message.error('加载失败')).finally(() => setLoading(false));
-  }, [uid]);
+    // Use navigation state from DiagnosisPage if available (avoids second fetch)
+    const stateData = (location.state as { diagnosis?: DiagnosisData })?.diagnosis;
+    if (stateData && stateData.uid === uid) {
+      setData(stateData);
+      setLoading(false);
+    } else {
+      getDiagnosis(uid)
+        .then((res) => setData(res.data))
+        .catch(() => message.error('加载失败'))
+        .finally(() => setLoading(false));
+    }
+  }, [uid, location.state]);
 
   const handleExport = async () => {
     if (!uid) return;
@@ -134,6 +147,27 @@ export default function ResultPage() {
               description={data.recommendation}
               style={{ marginBottom: 24 }}
             />
+
+            {/* Show review status if reviewed */}
+            {data.review_status && data.review_status !== 'pending' && (
+              <Alert
+                type={data.review_status === 'confirmed' ? 'success' : 'error'}
+                showIcon
+                message={<>审核状态：<Tag color={REVIEW_TAG_COLORS[data.review_status]}>{REVIEW_CN[data.review_status]}</Tag></>}
+                description={data.review_comment || '无审核意见'}
+                style={{ marginBottom: 24 }}
+              />
+            )}
+
+            {data.confidence < 60 && (
+              <Alert
+                type="warning"
+                showIcon
+                message="低置信度提醒"
+                description="本次诊断置信度低于 60%，建议重新上传更清晰的眼底图像，或请专业医生复核。"
+                style={{ marginBottom: 24 }}
+              />
+            )}
 
             <Descriptions column={2} size="small" bordered>
               <Descriptions.Item label="患者姓名">{data.patient_name || '未填写'}</Descriptions.Item>

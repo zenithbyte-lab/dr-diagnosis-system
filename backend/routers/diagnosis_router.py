@@ -1,6 +1,5 @@
 import os
 import uuid
-import base64
 from io import BytesIO
 
 import numpy as np
@@ -25,6 +24,14 @@ def _get_inference():
 def _check_access(d: Diagnosis, user: User):
     if d.user_id != user.id and user.role != "admin":
         raise HTTPException(403, "Access denied")
+
+
+def _image_url(uid: str) -> str:
+    return f"/files/uploads/{uid}.png"
+
+
+def _heatmap_url(uid: str) -> str:
+    return f"/files/heatmaps/{uid}_gradcam.png"
 
 
 @router.post("/")
@@ -56,8 +63,7 @@ async def create_diagnosis(
     img_np = np.array(img.resize((224, 224))) / 255.0
     overlay_np = apply_heatmap(img_np, cam)
     heatmap_path = os.path.join(HEATMAP_DIR, f"{uid}_gradcam.png")
-    overlay_img = Image.fromarray(overlay_np)
-    overlay_img.save(heatmap_path)
+    Image.fromarray(overlay_np).save(heatmap_path)
 
     probs_pct = [round(float(p) * 100, 2) for p in probs]
     info = SEVERITY_INFO[pred_class]
@@ -78,24 +84,10 @@ async def create_diagnosis(
     db.commit()
     db.refresh(diagnosis)
 
-    buf_orig = BytesIO()
-    img.save(buf_orig, format="PNG")
-    buf_heat = BytesIO()
-    overlay_img.save(buf_heat, format="PNG")
-
-    return {
-        "uid": uid,
-        "timestamp": diagnosis.created_at.isoformat(),
-        "prediction": {
-            "class": pred_class,
-            "label": CLASSES[pred_class],
-            "confidence": diagnosis.confidence,
-            "probabilities": {CLASSES[i]: probs_pct[i] for i in range(5)},
-        },
-        "severity": info,
-        "image": f"data:image/png;base64,{base64.b64encode(buf_orig.getvalue()).decode()}",
-        "heatmap": f"data:image/png;base64,{base64.b64encode(buf_heat.getvalue()).decode()}",
-    }
+    result = _diagnosis_to_dict(diagnosis)
+    result["image"] = _image_url(uid)
+    result["heatmap"] = _heatmap_url(uid)
+    return result
 
 
 @router.get("/")
@@ -118,8 +110,8 @@ def get_diagnosis(uid: str, user: User = Depends(get_current_user), db: Session 
         raise HTTPException(404, "Diagnosis not found")
     _check_access(d, user)
     result = _diagnosis_to_dict(d)
-    result["image"] = _file_to_base64(d.original_image)
-    result["heatmap"] = _file_to_base64(d.heatmap_image)
+    result["image"] = _image_url(d.uid)
+    result["heatmap"] = _heatmap_url(d.uid)
     return result
 
 
@@ -128,6 +120,17 @@ def delete_diagnosis(uid: str, user: User = Depends(get_current_user), db: Sessi
     d = db.query(Diagnosis).filter(Diagnosis.uid == uid, Diagnosis.user_id == user.id).first()
     if not d:
         raise HTTPException(404, "Not found")
+    # Clean up files on disk
+    for path in [d.original_image, d.heatmap_image]:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+    if d.report:
+        try:
+            os.remove(d.report.file_path)
+        except OSError:
+            pass
     db.delete(d)
     db.commit()
     return {"ok": True}
@@ -151,13 +154,6 @@ def _diagnosis_to_dict(d: Diagnosis) -> dict:
         "risk_level": d.risk_level,
         "recommendation": d.recommendation,
         "review_status": d.review_status,
+        "review_comment": d.review_comment,
         "created_at": d.created_at.isoformat(),
     }
-
-
-def _file_to_base64(path: str) -> str:
-    try:
-        with open(path, "rb") as f:
-            return f"data:image/png;base64,{base64.b64encode(f.read()).decode()}"
-    except (FileNotFoundError, OSError):
-        return ""
