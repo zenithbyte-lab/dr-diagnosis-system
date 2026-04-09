@@ -14,10 +14,10 @@ export default function AppLayout() {
   const { user, logout } = useAuth();
 
   const menuItems = [
-    { key: '/', icon: <UploadOutlined />, label: 'New Diagnosis' },
-    { key: '/history', icon: <HistoryOutlined />, label: 'History' },
+    { key: '/', icon: <UploadOutlined />, label: '新建诊断' },
+    { key: '/history', icon: <HistoryOutlined />, label: '诊断历史' },
     ...(user?.role === 'admin'
-      ? [{ key: '/admin', icon: <DashboardOutlined />, label: 'Admin Dashboard' }]
+      ? [{ key: '/admin', icon: <DashboardOutlined />, label: '管理后台' }]
       : []),
   ];
 
@@ -26,7 +26,7 @@ export default function AppLayout() {
       <Sider theme="dark" width={220} breakpoint="lg" collapsedWidth={80}>
         <div className="logo-area">
           <EyeOutlined style={{ fontSize: 24 }} />
-          <span>DR Diagnosis</span>
+          <span>DR 诊断系统</span>
         </div>
         <Menu
           theme="dark"
@@ -41,14 +41,14 @@ export default function AppLayout() {
           <Dropdown
             menu={{
               items: [
-                { key: 'info', label: `${user?.real_name || user?.username} (${user?.role})`, disabled: true },
-                { key: 'logout', icon: <LogoutOutlined />, label: 'Logout', danger: true },
+                { key: 'info', label: `${user?.real_name || user?.username}（${user?.role === 'admin' ? '管理员' : '普通用户'}）`, disabled: true },
+                { key: 'logout', icon: <LogoutOutlined />, label: '退出登录', danger: true },
               ],
               onClick: ({ key }) => { if (key === 'logout') { logout(); navigate('/login'); } },
             }}
           >
             <Button type="text" icon={<Avatar size="small" icon={<UserOutlined />} style={{ background: '#0e7490' }} />}>
-              {' '}{user?.username}
+              {' '}{user?.real_name || user?.username}
             </Button>
           </Dropdown>
         </Header>

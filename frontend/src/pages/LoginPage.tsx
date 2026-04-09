@@ -18,10 +18,10 @@ export default function LoginPage() {
     try {
       const { data } = await login(values.username, values.password);
       setAuth(data.access_token, data.user);
-      message.success('Login successful');
+      message.success('登录成功');
       navigate('/');
     } catch {
-      message.error('Invalid username or password');
+      message.error('用户名或密码错误');
     } finally {
       setLoading(false);
     }
@@ -31,11 +31,11 @@ export default function LoginPage() {
     try {
       const { data } = await register(values.username, values.password, values.real_name);
       setAuth(data.access_token, data.user);
-      message.success('Registration successful');
+      message.success('注册成功');
       setRegOpen(false);
       navigate('/');
     } catch {
-      message.error('Registration failed, username may already exist');
+      message.error('注册失败，用户名可能已存在');
     }
   };
 
@@ -45,44 +45,49 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <EyeOutlined style={{ fontSize: 48, color: '#0e7490' }} />
         </div>
-        <Title level={3} className="login-title">DR Diagnosis System</Title>
+        <Title level={3} className="login-title">糖尿病视网膜病变诊断系统</Title>
         <Text className="login-subtitle" style={{ display: 'block' }}>
-          Diabetic Retinopathy AI-Assisted Diagnosis
+          基于深度学习的眼底图像辅助诊断平台
         </Text>
 
         <Form onFinish={onLogin} size="large" layout="vertical">
-          <Form.Item name="username" rules={[{ required: true, message: 'Please enter username' }]}>
-            <Input prefix={<UserOutlined />} placeholder="Username" />
+          <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
+            <Input prefix={<UserOutlined />} placeholder="用户名" />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, message: 'Please enter password' }]}>
-            <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+          <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
+            <Input.Password prefix={<LockOutlined />} placeholder="密码" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block loading={loading}>
-              Login
+              登 录
             </Button>
           </Form.Item>
         </Form>
 
         <div style={{ textAlign: 'center' }}>
           <Button type="link" onClick={() => setRegOpen(true)}>
-            Create Account
+            注册新账号
           </Button>
         </div>
+        <div style={{ textAlign: 'center', marginTop: 8 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            演示账号：admin / admin123
+          </Text>
+        </div>
 
-        <Modal title="Register" open={regOpen} onCancel={() => setRegOpen(false)} footer={null}>
+        <Modal title="用户注册" open={regOpen} onCancel={() => setRegOpen(false)} footer={null}>
           <Form onFinish={onRegister} layout="vertical">
-            <Form.Item name="username" label="Username" rules={[{ required: true }]}>
+            <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
               <Input />
             </Form.Item>
-            <Form.Item name="real_name" label="Real Name">
+            <Form.Item name="real_name" label="姓名">
               <Input />
             </Form.Item>
-            <Form.Item name="password" label="Password" rules={[{ required: true, min: 6 }]}>
+            <Form.Item name="password" label="密码" rules={[{ required: true, min: 6, message: '密码至少6位' }]}>
               <Input.Password />
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit" block>Register</Button>
+              <Button type="primary" htmlType="submit" block>注 册</Button>
             </Form.Item>
           </Form>
         </Modal>
